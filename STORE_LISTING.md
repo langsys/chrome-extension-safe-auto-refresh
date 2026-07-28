@@ -111,10 +111,7 @@ https://github.com/langsys/chrome-extension-safe-auto-refresh
 **Single purpose description**
 
 ```
-The single purpose of this extension is to reload browser tabs on a
-user-configured time interval. All of its UI and code serves that one function:
-setting an interval, starting or pausing a reload timer for a specific tab, and
-showing which tabs currently have a timer running.
+This extension reloads browser tabs on a timer set by the user. Every part of its interface and code serves that one function: choosing an interval, starting, pausing or cancelling a reload timer for a specific tab, and showing which tabs currently have a timer running.
 ```
 
 **Permission justifications**
@@ -122,42 +119,31 @@ showing which tabs currently have a timer running.
 `alarms`
 
 ```
-Used to schedule tab reloads at intervals of 30 seconds or longer. Chrome
-terminates MV3 service workers after roughly 30 seconds of inactivity, which
-would kill an in-worker timer. chrome.alarms is managed by Chrome, so scheduled
-reloads survive the worker being shut down. A single additional 30-second
-"keepalive" alarm wakes the worker so that sub-30-second timers can be
-re-armed after a shutdown.
+Used to schedule the tab reloads that are this extension's only function, at intervals of 30 seconds or longer.
+
+Chrome terminates MV3 service workers after roughly 30 seconds of inactivity, which would kill a setInterval timer held in the worker and silently stop refreshing. chrome.alarms is managed by Chrome, so a scheduled reload still fires after the worker has been shut down.
+
+One additional 30-second "keepalive" alarm wakes the worker so that intervals shorter than 30 seconds can be re-armed after a shutdown.
 ```
 
 `storage`
 
 ```
-Two uses, both local to the user's machine.
+Two uses, both local to the user's device, neither transmitted anywhere.
 
-chrome.storage.session holds the live list of refresh jobs (tab ID, interval,
-running or paused, timestamps, and the tab title/favicon used as the row label)
-so the worker can rebuild its state after Chrome shuts it down. Session storage
-is cleared when the browser closes.
+chrome.storage.session holds the list of active reload jobs: tab ID, interval, running or paused, timestamps, and the tab title and favicon URL used as the label for that row in the popup. This lets the extension rebuild its state after Chrome shuts down its service worker; without it, reopening the popup could not report what is actually running. Chrome clears session storage when the browser closes.
 
-chrome.storage.local holds exactly one value: the user's preferred default
-interval, so it does not have to be re-entered.
+chrome.storage.local holds a single value: the user's preferred default interval, so it does not have to be re-entered.
 
-No browsing history, page content, or URLs are stored, and nothing is
-transmitted anywhere.
+No browsing history, page content, or URLs are stored.
 ```
 
 `activeTab`
 
 ```
-Used only to read the title and favicon URL of the tab the user invoked the
-extension on, at the moment they press Start. These are used as the human
-readable label for that job in the popup's list; without them the list can only
-show an opaque numeric tab ID such as "Tab #4711".
+Used only to read the title and favicon URL of the tab the user invoked the extension on, at the moment they click Start. These label that job in the popup's list of running tabs. Without them the list can only show an opaque numeric tab ID such as "Tab #4711".
 
-The extension deliberately does NOT request the "tabs" permission or any host
-permissions, so this is the only way it can label a job, and it applies to one
-tab at a time on explicit user action.
+The extension requests no host permissions and does not request the "tabs" permission, so it has no other way to identify a tab to the user, and no ability to read or modify page content. activeTab applies to one tab at a time, only on explicit user action.
 ```
 
 **Remote code:** No, the extension does not use remote code. All JavaScript is
