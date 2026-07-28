@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2ea043" />
+      <stop offset="1" stop-color="#137a35" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" ry="28" fill="url(#bg)" />
+  <!--
+    Circle of r=34 about (64,64). The stroke runs clockwise from 300deg
+    (top right, the tail) round to 234deg (top left), where the arrowhead
+    takes over. The gap sits at 12 o'clock.
+  -->
+  <path
+    d="M 81 34.56 A 34 34 0 1 1 44.02 36.49"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="12"
+    stroke-linecap="butt"
+  />
+  <!-- rounded tail cap -->
+  <circle cx="81" cy="34.56" r="6" fill="#ffffff" />
+  <!-- arrowhead on the 240deg point, aligned to the clockwise tangent (-30deg) -->
+  <polygon
+    points="14,0 -7,-11 -7,11"
+    fill="#ffffff"
+    transform="translate(47,34.56) rotate(-30)"
+  />
+</svg>

@@ -1,0 +1,391 @@
+:root {
+  --bg: #ffffff;
+  --bg-sunken: #f6f8fa;
+  --border: #d8dee4;
+  --text: #1f2328;
+  --text-muted: #59636e;
+  --accent: #1a7f37;
+  --accent-hover: #15602a;
+  --danger: #b7343b;
+  --focus: #0969da;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c2128;
+    --bg-sunken: #22272e;
+    --border: #373e47;
+    --text: #cdd9e5;
+    --text-muted: #909dab;
+    --accent: #3fb950;
+    --accent-hover: #56d364;
+    --danger: #f47067;
+    --focus: #539bf5;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------- header ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header__mark {
+  display: block;
+}
+
+.header__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- panels ---------- */
+
+.panel {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel__heading {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  margin: 0;
+  padding: 8px 14px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+/* ---------- tab label ---------- */
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.tab-label__title {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.avatar img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ---------- interval field ---------- */
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.field__label {
+  color: var(--text-muted);
+}
+
+.field__input {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.field__unit {
+  color: var(--text-muted);
+}
+
+input[type="number"] {
+  width: 68px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+input[type="number"]:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* ---------- presets ---------- */
+
+.presets {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  flex: 1;
+  padding: 4px 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.chip:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+}
+
+.btn:hover {
+  border-color: var(--text-muted);
+}
+
+.btn--block {
+  display: block;
+  width: 100%;
+}
+
+.btn--primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+}
+
+.btn--danger {
+  color: var(--danger);
+}
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn--ghost:hover {
+  color: var(--danger);
+  border-color: transparent;
+}
+
+.btn-row {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-row .btn {
+  flex: 1;
+}
+
+/* ---------- running state ---------- */
+
+.status {
+  margin: 0 0 2px;
+  font-weight: 500;
+}
+
+.status--running::before {
+  content: "↻ ";
+  color: var(--accent);
+}
+
+.status--paused::before {
+  content: "‖ ";
+  color: var(--text-muted);
+}
+
+.countdown {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- other-tab job list ---------- */
+
+.jobs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.job {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.job + .job {
+  margin-top: 2px;
+}
+
+.job__focus {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.job__focus:hover {
+  background: var(--bg-sunken);
+}
+
+.job__text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.job__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job__meta {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.job__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.icon-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: var(--bg-sunken);
+  color: var(--text);
+}
+
+.icon-btn--danger:hover {
+  color: var(--danger);
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.footer__field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.footer__field input[type="number"] {
+  width: 58px;
+  padding: 2px 5px;
+  font-size: 12px;
+}

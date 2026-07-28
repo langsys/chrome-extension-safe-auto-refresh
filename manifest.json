@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Safe Auto Refresh & Page Reloader",
+  "version": "1.0.0",
+  "description": "Auto-refresh any tab on a timer. Per-tab jobs, honest state, no host permissions, no content scripts, no page access.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "alarms", "activeTab"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Safe Auto Refresh",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

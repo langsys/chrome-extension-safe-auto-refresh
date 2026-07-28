@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Safe Auto Refresh</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <img class="header__mark" src="icons/icon-32.png" alt="" width="18" height="18" />
+      <h1 class="header__title">Safe Auto Refresh</h1>
+    </header>
+
+    <p class="error" id="error" role="alert" hidden></p>
+
+    <section class="panel" aria-labelledby="this-tab-heading">
+      <h2 class="panel__heading" id="this-tab-heading">This tab</h2>
+
+      <div class="tab-label">
+        <span class="avatar" id="active-avatar" aria-hidden="true"></span>
+        <span class="tab-label__title" id="active-title">Loading…</span>
+      </div>
+
+      <!-- Shown when this tab has no job -->
+      <div id="idle-view" hidden>
+        <label class="field">
+          <span class="field__label">Refresh every</span>
+          <span class="field__input">
+            <input
+              type="number"
+              id="interval-input"
+              min="2"
+              max="86400"
+              step="1"
+              inputmode="numeric"
+            />
+            <span class="field__unit">seconds</span>
+          </span>
+        </label>
+
+        <div class="presets" id="presets" role="group" aria-label="Interval presets">
+          <button type="button" class="chip" data-seconds="5">5s</button>
+          <button type="button" class="chip" data-seconds="15">15s</button>
+          <button type="button" class="chip" data-seconds="30">30s</button>
+          <button type="button" class="chip" data-seconds="60">1m</button>
+          <button type="button" class="chip" data-seconds="300">5m</button>
+        </div>
+
+        <button type="button" class="btn btn--primary btn--block" id="start-btn">
+          Start refreshing
+        </button>
+      </div>
+
+      <!-- Shown when this tab has a job -->
+      <div id="active-view" hidden>
+        <p class="status" id="active-status"></p>
+        <p class="countdown" id="active-countdown"></p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="toggle-btn"></button>
+          <button type="button" class="btn btn--danger" id="cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="others-panel" aria-labelledby="others-heading" hidden>
+      <h2 class="panel__heading" id="others-heading">
+        Also running on <span class="count" id="others-count"></span>
+      </h2>
+      <ul class="jobs" id="others-list"></ul>
+    </section>
+
+    <footer class="footer">
+      <label class="footer__field">
+        <span>Default</span>
+        <input
+          type="number"
+          id="default-interval"
+          min="2"
+          max="86400"
+          step="1"
+          inputmode="numeric"
+        />
+        <span>s</span>
+      </label>
+      <button type="button" class="btn btn--ghost" id="cancel-all-btn" hidden>Cancel all</button>
+    </footer>
+
+    <template id="job-row-template">
+      <li class="job">
+        <button type="button" class="job__focus" title="Switch to this tab">
+          <span class="avatar" aria-hidden="true"></span>
+          <span class="job__text">
+            <span class="job__title"></span>
+            <span class="job__meta"></span>
+          </span>
+        </button>
+        <div class="job__actions">
+          <button type="button" class="icon-btn" data-action="toggle"></button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="cancel" title="Cancel">
+            ✕
+          </button>
+        </div>
+      </li>
+    </template>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

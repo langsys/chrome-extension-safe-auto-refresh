@@ -1,0 +1,22 @@
+{
+  "name": "chrome-extension-safe-auto-refresh",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension that reloads tabs on a timer, with no host permissions and no content scripts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/langsys/chrome-extension-safe-auto-refresh.git"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node test/e2e.mjs",
+    "test:headful": "node test/e2e.mjs --headful",
+    "icons": "bash scripts/build-icons.sh",
+    "store-assets": "node scripts/store-assets.mjs",
+    "package": "bash scripts/package.sh"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
