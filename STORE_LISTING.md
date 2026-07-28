@@ -184,15 +184,23 @@ https://github.com/langsys/chrome-extension-safe-auto-refresh/blob/main/PRIVACY.
 
 ## Graphics
 
-| Asset | File | Size |
-| --- | --- | --- |
-| Store icon | `assets/store/store-icon-128.png` | 128×128 |
-| Screenshot 1 | `assets/store/screenshot-1-running.png` | 1280×800 |
-| Screenshot 2 | `assets/store/screenshot-2-idle.png` | 1280×800 |
-| Screenshot 3 | `assets/store/screenshot-3-multi.png` | 1280×800 |
-| Screenshot 4 | `assets/store/screenshot-4-privacy.png` | 1280×800 |
-| Small promo tile | `assets/store/promo-small-440x280.png` | 440×280 |
-| Marquee promo tile | `assets/store/promo-marquee-1400x560.png` | 1400×560 |
+Uploading the zip does **not** populate any of these. The package and the
+listing are separate: nothing in `manifest.json`, including its `icons` block,
+reaches the store listing. Every file below is a manual upload under
+**Store listing → Graphics**, one field at a time.
+
+| Dashboard field | File | Size | Required |
+| --- | --- | --- | --- |
+| Store icon | `assets/store/store-icon-128.png` | 128×128 | yes |
+| Screenshots (up to 5) | `assets/store/screenshot-1-running.png` | 1280×800 | at least 1 |
+| | `assets/store/screenshot-2-idle.png` | 1280×800 | |
+| | `assets/store/screenshot-3-multi.png` | 1280×800 | |
+| | `assets/store/screenshot-4-privacy.png` | 1280×800 | |
+| Small promo tile | `assets/store/promo-small-440x280.png` | 440×280 | no |
+| Marquee promo tile | `assets/store/promo-marquee-1400x560.png` | 1400×560 | no |
+
+The promo tiles are optional, but the store needs the small tile to place the
+item in its browsing pages, and the marquee for any featured slot.
 
 Screenshots 1–3 are captured from the extension actually running
 (`npm run store-assets`), not mocked up.
