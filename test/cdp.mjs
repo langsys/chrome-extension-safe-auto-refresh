@@ -31,7 +31,7 @@ async function chromeCandidates() {
   const found = [];
   const patterns = [
     `${homedir()}/Library/Caches/ms-playwright/chromium-*/chrome-mac*/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`,
-    `${homedir()}/.cache/ms-playwright/chromium-*/chrome-linux/chrome`,
+    `${homedir()}/.cache/ms-playwright/chromium-*/chrome-linux*/chrome`,
   ];
   for (const pattern of patterns) {
     try {
@@ -76,6 +76,10 @@ export async function launchChrome({ extensionPath, headless = true, extraArgs =
     '--disable-renderer-backgrounding',
     '--disable-backgrounding-occluded-windows',
     '--window-size=1280,800',
+    // CI runners restrict the user namespaces Chrome's sandbox needs, and
+    // /dev/shm is small in containers. Both are safe here (throwaway profile,
+    // local fixture pages) and neither is used on a developer machine.
+    ...(process.env.CI ? ['--no-sandbox', '--disable-dev-shm-usage'] : []),
     ...extraArgs,
     'about:blank',
   ];

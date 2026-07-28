@@ -6,6 +6,11 @@ is wrong.
 
 Upload artifact: `dist/safe-auto-refresh-<version>.zip` (`npm run package`).
 
+Everything on this page is entered by hand, once. The Chrome Web Store API can
+upload a package and publish it, but it cannot set any listing field, upload a
+screenshot, or answer a privacy question. See [`docs/PUBLISHING.md`](docs/PUBLISHING.md)
+for what is automated and how to set it up.
+
 ---
 
 ## Store listing

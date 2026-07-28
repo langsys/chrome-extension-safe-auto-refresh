@@ -198,6 +198,26 @@ states, input validation and cancel-all.
 npm run icons   # needs rsvg-convert (brew install librsvg)
 ```
 
+### Releasing
+
+Tagging a version runs the test suite, builds the zip, uploads it to the Chrome
+Web Store as a draft, and creates a GitHub release:
+
+```bash
+git tag v1.0.1 && git push --tags
+```
+
+Publishing to users is a separate, deliberate action — it queues a review that
+CI cannot cancel and whose outcome arrives by email. Trigger it from
+**Actions → Release → Run workflow**, or run `npm run publish:store` locally.
+
+Note the store API can only upload a package and publish it. The listing copy,
+screenshots, promo tiles and privacy disclosures are dashboard-only;
+[`STORE_LISTING.md`](STORE_LISTING.md) holds the text to paste in.
+
+Full setup, including the OAuth dance and the mistakes that break it later, is
+in [`docs/PUBLISHING.md`](docs/PUBLISHING.md).
+
 ## License
 
 [MIT](LICENSE)

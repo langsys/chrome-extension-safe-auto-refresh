@@ -14,7 +14,11 @@
     "test:headful": "node test/e2e.mjs --headful",
     "icons": "bash scripts/build-icons.sh",
     "store-assets": "node scripts/store-assets.mjs",
-    "package": "bash scripts/package.sh"
+    "package": "bash scripts/package.sh",
+    "publish:dry-run": "node scripts/publish.mjs --dry-run",
+    "publish:draft": "node scripts/publish.mjs --upload-only",
+    "publish:store": "node scripts/publish.mjs",
+    "auth": "node scripts/get-refresh-token.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -1,0 +1,123 @@
+name: Release
+
+# Tag a version to run this:  git tag v1.0.1 && git push --tags
+#
+# On a tag the new version is uploaded to the Chrome Web Store as a DRAFT and a
+# GitHub release is created. It is not published to users unless the repository
+# variable CWS_AUTO_PUBLISH is set to "true", because publishing queues a review
+# that cannot be undone from CI and whose outcome arrives by email.
+#
+# Use the "Run workflow" button to publish deliberately, including to trusted
+# testers only.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish after uploading (otherwise leave it as a draft)
+        type: boolean
+        default: false
+      target:
+        description: Who the published version goes to
+        type: choice
+        options: [trustedTesters, default]
+        default: trustedTesters
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The suite needs a browser that still honours --load-extension. Chrome
+      # 137+ ships a kill switch for that flag, so use the Chrome for Testing
+      # build; test/cdp.mjs finds it in the Playwright cache.
+      - name: Install Chrome for Testing
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Run the suite
+        run: npm test
+
+  release:
+    name: Package and upload
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the tag matches the manifest version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          MANIFEST=$(node -p "require('./manifest.json').version")
+          if [ "$TAG" != "$MANIFEST" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match manifest version $MANIFEST"
+            exit 1
+          fi
+          echo "version $MANIFEST"
+
+      - name: Build the store package
+        run: npm run package
+
+      - name: Are Web Store credentials configured?
+        id: creds
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+        run: |
+          if [ -n "$CWS_CLIENT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Web Store secrets are not set, so the upload is skipped. See docs/PUBLISHING.md."
+          fi
+
+      - name: Decide upload mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PUBLISH="${{ inputs.publish }}"
+            TARGET="${{ inputs.target }}"
+          else
+            PUBLISH="${{ vars.CWS_AUTO_PUBLISH == 'true' }}"
+            TARGET="default"
+          fi
+          if [ "$PUBLISH" = "true" ]; then
+            echo "args=--target=$TARGET" >> "$GITHUB_OUTPUT"
+            echo "::notice::Uploading and publishing to '$TARGET'."
+          else
+            echo "args=--upload-only" >> "$GITHUB_OUTPUT"
+            echo "::notice::Uploading as a draft only."
+          fi
+
+      - name: Upload to the Chrome Web Store
+        if: steps.creds.outputs.configured == 'true'
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
+        run: node scripts/publish.mjs ${{ steps.mode.outputs.args }}
+
+      - name: Create the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See [CHANGELOG.md](CHANGELOG.md). The attached zip is the Chrome Web Store artifact and contains only the extension files." \
+            --verify-tag || echo "::notice::Release already exists, attaching nothing."
