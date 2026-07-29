@@ -12,6 +12,12 @@ export const MAX_INTERVAL = 86400;
 export const FALLBACK_DEFAULT_INTERVAL = 60;
 
 /**
+ * Longest job label we keep. Labels are typed by the user — the extension has
+ * no permission to read a tab's title, by design.
+ */
+export const MAX_LABEL = 60;
+
+/**
  * Chrome's alarms API has a 30s minimum period. Jobs at or above this run on
  * alarms (survive service-worker death for free); jobs below it run on
  * setInterval, backed by a keepalive alarm so a dead worker is revived quickly.
@@ -28,7 +34,7 @@ export const MSG = {
   RESUME: 'RESUME',
   CANCEL: 'CANCEL',
   CANCEL_ALL: 'CANCEL_ALL',
-  REFRESH_LABEL: 'REFRESH_LABEL',
+  SET_LABEL: 'SET_LABEL',
   SET_DEFAULT_INTERVAL: 'SET_DEFAULT_INTERVAL',
 };
 
@@ -43,6 +49,21 @@ export function normalizeInterval(value) {
   if (!Number.isFinite(n)) return null;
   if (n < MIN_INTERVAL || n > MAX_INTERVAL) return null;
   return n;
+}
+
+/** Trim and cap a user-typed label. Always returns a string. */
+export function normalizeLabel(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim().slice(0, MAX_LABEL);
+}
+
+/**
+ * A stable colour per tab so unlabelled rows are still distinguishable.
+ * Deterministic from the tab ID — no stored state, no permission.
+ */
+export function hueForTab(tabId) {
+  const n = Math.abs(Number(tabId) || 0);
+  return (n * 47) % 360;
 }
 
 /** "90" -> "1m 30s", "45" -> "45s", "3600" -> "1h" */

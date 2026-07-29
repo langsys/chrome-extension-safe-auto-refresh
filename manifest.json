@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Safe Auto Refresh & Page Reloader",
-  "version": "1.0.0",
-  "description": "Auto-refresh any tab on a timer. Per-tab jobs, honest state, no host permissions, no content scripts, no page access.",
+  "version": "1.0.1",
+  "description": "Auto-refresh any tab on a timer. Independent per-tab jobs, honest live state, and no access to any website whatsoever.",
   "minimum_chrome_version": "120",
-  "permissions": ["storage", "alarms", "activeTab"],
+  "permissions": ["storage", "alarms"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

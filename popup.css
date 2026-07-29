@@ -29,6 +29,15 @@
   box-sizing: border-box;
 }
 
+/*
+ * The UA rule for [hidden] is display:none at the lowest specificity, so any
+ * class here that sets a display value silently defeats it. Everything in this
+ * popup is shown and hidden by the hidden attribute, so make it win.
+ */
+[hidden] {
+  display: none !important;
+}
+
 body {
   width: 320px;
   margin: 0;
@@ -103,25 +112,31 @@ body {
   white-space: nowrap;
 }
 
+/*
+ * There are no favicons here: reading one needs access to the tab, which this
+ * extension deliberately does not have. Instead each job gets a dot whose hue
+ * is derived from its tab ID, so rows stay distinguishable when unnamed.
+ */
 .avatar {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
-  background: var(--bg-sunken);
-  color: var(--text-muted);
+  border-radius: 4px;
+  background: hsl(var(--hue, 210) 55% 90%);
+  color: hsl(var(--hue, 210) 60% 30%);
   font-size: 9px;
   font-weight: 700;
   overflow: hidden;
   text-transform: uppercase;
 }
 
-.avatar img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+@media (prefers-color-scheme: dark) {
+  .avatar {
+    background: hsl(var(--hue, 210) 40% 26%);
+    color: hsl(var(--hue, 210) 65% 80%);
+  }
 }
 
 /* ---------- interval field ---------- */
@@ -136,6 +151,27 @@ body {
 
 .field__label {
   color: var(--text-muted);
+}
+
+.field__hint {
+  opacity: 0.75;
+}
+
+.field__text {
+  flex: 1;
+  min-width: 0;
+  max-width: 168px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.field__text::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .field__input {

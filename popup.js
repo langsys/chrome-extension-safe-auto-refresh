@@ -8,12 +8,18 @@ import {
   MIN_INTERVAL,
   MSG,
   formatInterval,
+  hueForTab,
   normalizeInterval,
+  normalizeLabel,
 } from './shared/constants.js';
 
 const $ = (id) => document.getElementById(id);
 
-/** The tab the popup was opened on. activeTab grants us its title/favicon. */
+/**
+ * The tab the popup was opened on. Only its ID is available — the extension
+ * requests no access to any site, so titles, URLs and favicons are invisible
+ * to it. Job names come from the user instead.
+ */
 let activeTab = null;
 
 /** Last known state from the worker: { jobs, defaultInterval }. */
@@ -53,25 +59,13 @@ function showError(text) {
 // ---------------------------------------------------------------------------
 
 function labelFor(tabId, job) {
-  const title = job?.title?.trim();
-  return title || `Tab #${tabId}`;
+  return job?.label?.trim() || `Tab #${tabId}`;
 }
 
-function paintAvatar(el, label, favIconUrl) {
-  el.textContent = '';
-  const letter = label.trim().charAt(0) || '?';
-  if (!favIconUrl) {
-    el.textContent = letter;
-    return;
-  }
-  const img = document.createElement('img');
-  img.alt = '';
-  img.referrerPolicy = 'no-referrer';
-  img.addEventListener('error', () => {
-    el.textContent = letter;
-  });
-  img.src = favIconUrl;
-  el.appendChild(img);
+function paintAvatar(el, tabId, job) {
+  const named = Boolean(job?.label?.trim());
+  el.style.setProperty('--hue', String(hueForTab(tabId)));
+  el.textContent = named ? job.label.trim().charAt(0) : '#';
 }
 
 function secondsUntilNextRun(job) {
@@ -98,28 +92,22 @@ function render() {
 }
 
 function renderActiveTab(activeId, job) {
-  // On the active card a bare "Tab #873156630" is noise — the heading already
-  // says which tab this is. Numeric fallbacks are only useful in the list of
-  // other tabs, where they distinguish one row from another.
-  const label = activeTab
-    ? activeTab.title?.trim() || job?.title?.trim() || 'Current tab'
-    : 'No active tab';
-  $('active-title').textContent = label;
-  $('active-title').title = label;
-  paintAvatar($('active-avatar'), label, activeTab?.favIconUrl ?? job?.favIconUrl ?? '');
-
   const idle = $('idle-view');
   const running = $('active-view');
+  const labelRow = $('active-label-row');
 
   if (!activeTab) {
     idle.hidden = true;
     running.hidden = true;
+    labelRow.hidden = true;
     return;
   }
 
   if (!job) {
     idle.hidden = false;
     running.hidden = true;
+    // The heading already says "This tab"; with no job there is nothing to name.
+    labelRow.hidden = true;
     if (!$('interval-input').value) {
       $('interval-input').value = String(snapshot.defaultInterval);
     }
@@ -129,6 +117,14 @@ function renderActiveTab(activeId, job) {
 
   idle.hidden = true;
   running.hidden = false;
+
+  const named = Boolean(job.label?.trim());
+  labelRow.hidden = !named;
+  if (named) {
+    $('active-title').textContent = job.label.trim();
+    $('active-title').title = job.label.trim();
+    paintAvatar($('active-avatar'), activeId, job);
+  }
 
   const status = $('active-status');
   const isRunning = job.state === 'running';
@@ -156,7 +152,7 @@ function renderOthers(jobs, activeId) {
     const row = template.content.firstElementChild.cloneNode(true);
     const label = labelFor(tabId, job);
 
-    paintAvatar(row.querySelector('.avatar'), label, job.favIconUrl);
+    paintAvatar(row.querySelector('.avatar'), tabId, job);
     row.querySelector('.job__title').textContent = label;
     row.querySelector('.job__focus').title = `Switch to ${label}`;
     row.querySelector('.job__meta').textContent =
@@ -245,9 +241,9 @@ async function startOnActiveTab() {
     type: MSG.START,
     tabId: activeTab.id,
     interval: seconds,
-    title: activeTab.title ?? '',
-    favIconUrl: activeTab.favIconUrl ?? '',
+    label: normalizeLabel($('label-input').value),
   });
+  $('label-input').value = '';
   render();
 }
 
@@ -258,9 +254,11 @@ async function startOnActiveTab() {
 $('start-btn').addEventListener('click', startOnActiveTab);
 
 $('interval-input').addEventListener('input', syncPresets);
-$('interval-input').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') startOnActiveTab();
-});
+for (const id of ['interval-input', 'label-input']) {
+  $(id).addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') startOnActiveTab();
+  });
+}
 
 $('presets').addEventListener('click', (event) => {
   const chip = event.target.closest('.chip');
@@ -303,21 +301,12 @@ $('default-interval').addEventListener('change', async (event) => {
 // ---------------------------------------------------------------------------
 
 (async function init() {
+  // Returns the tab's ID and nothing else — no title, no URL, no favicon.
+  // That is the whole point: the extension asks for access to no website.
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   activeTab = tab ?? null;
 
   if (!(await send({ type: MSG.GET_STATE }))) return;
-
-  // Labels are captured at Start time and drift as the tab navigates. This is
-  // the one tab whose title we're allowed to read, so top it up while we can.
-  if (activeTab && snapshot.jobs?.[activeTab.id] && (activeTab.title || activeTab.favIconUrl)) {
-    await send({
-      type: MSG.REFRESH_LABEL,
-      tabId: activeTab.id,
-      title: activeTab.title ?? '',
-      favIconUrl: activeTab.favIconUrl ?? '',
-    });
-  }
-
   render();
+  $('label-input').focus();
 })();

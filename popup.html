@@ -16,13 +16,26 @@
     <section class="panel" aria-labelledby="this-tab-heading">
       <h2 class="panel__heading" id="this-tab-heading">This tab</h2>
 
-      <div class="tab-label">
+      <!-- Shown when this tab has a job: the name the user gave it -->
+      <div class="tab-label" id="active-label-row" hidden>
         <span class="avatar" id="active-avatar" aria-hidden="true"></span>
-        <span class="tab-label__title" id="active-title">Loading…</span>
+        <span class="tab-label__title" id="active-title"></span>
       </div>
 
       <!-- Shown when this tab has no job -->
       <div id="idle-view" hidden>
+        <label class="field">
+          <span class="field__label">Name <span class="field__hint">(optional)</span></span>
+          <input
+            type="text"
+            id="label-input"
+            class="field__text"
+            maxlength="60"
+            placeholder="prod dashboard"
+            autocomplete="off"
+          />
+        </label>
+
         <label class="field">
           <span class="field__label">Refresh every</span>
           <span class="field__input">

@@ -118,7 +118,6 @@ package` fails if they disagree.
 **Nothing happens after a green pipeline.** Expected. Publishing submits for
 review; it does not ship. Watch the dashboard or your email.
 
-**A rejection.** Arrives by email, never in CI. With `activeTab` and a "no page
-access" pitch, expect questions on the first submission — which is why the
-permission justifications in `STORE_LISTING.md` are written as prose a reviewer
-can read rather than one-liners.
+**A rejection.** Arrives by email, never in CI. The permission justifications in
+`STORE_LISTING.md` are written as prose a reviewer can read rather than
+one-liners, which is the main thing that keeps a first submission moving.

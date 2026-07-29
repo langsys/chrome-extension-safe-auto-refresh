@@ -24,7 +24,7 @@ Safe Auto Refresh & Page Reloader
 **Summary** (132 char limit)
 
 ```
-Reload any tab on a timer. Independent per-tab jobs, live state you can trust, and no access to the pages you visit.
+Reload any tab on a timer. Independent per-tab jobs, live state you can trust, and no access to any website at all.
 ```
 
 **Category:** Workflow & Planning
@@ -36,11 +36,18 @@ Reload any tab on a timer. Independent per-tab jobs, live state you can trust, a
 Safe Auto Refresh reloads your tabs on a timer — dashboards, build pipelines,
 status boards, ticket queues, anything you would otherwise keep hitting F5 on.
 
-What makes it different is what it does NOT ask for. It requests no host
-permissions and registers no content scripts, so it cannot read, modify, or
-inject anything into any page you visit. It does not request the "tabs"
-permission either, so the addresses of the pages you have open are not visible
-to it at all. It reloads tabs by ID, and that is all it can do.
+What makes it different is what it does NOT ask for.
+
+It requests no host permissions, registers no content scripts, and does not
+request activeTab. There is no circumstance, not even while you have the popup
+open, in which it can see a page you are looking at. It does not request the
+"tabs" permission either, so the addresses and titles of your open tabs are
+invisible to it. It reloads tabs by numeric ID, and that is the whole of its
+power.
+
+Most auto-refresh extensions request activeTab. That is why Chrome files them
+under "Full access - can see and change information on this site" the moment you
+click them, alongside your password manager. This one never appears there.
 
 
 INDEPENDENT PER-TAB JOBS
@@ -83,19 +90,24 @@ Anything from 2 seconds to 24 hours. Presets for 5s, 15s, 30s, 1m and 5m, plus
 a saved default for new jobs.
 
 
+NAME YOUR JOBS
+
+Because the extension cannot read tab titles, you name a job yourself when you
+start it - "prod dashboard", "build #4821". It is optional, and usually more
+useful than a page title anyway. Unnamed jobs show as "Tab #4711" with a
+coloured dot so you can still tell rows apart.
+
+
 PERMISSIONS, AND WHY
 
 - alarms: scheduling reloads of 30 seconds or more reliably, in a way that
   survives Chrome shutting down the background worker.
 - storage: holding live job state in session storage so it can be rebuilt, plus
   one saved preference (your default interval).
-- activeTab: reading the title and favicon of the tab you press Start on, so
-  the job list can say "Production Overview — Grafana" instead of "Tab #4711".
-  Granted only for the tab you invoked the extension on, only at that moment.
 
-No host permissions. No content scripts. No remote code. No analytics, no
-telemetry, no accounts, no servers. Nothing about your browsing is collected or
-transmitted.
+That is the complete list. No host permissions. No content scripts. No
+activeTab. No remote code. No network requests of any kind. No analytics, no
+telemetry, no accounts, no servers.
 
 
 OPEN SOURCE
@@ -111,7 +123,7 @@ https://github.com/langsys/chrome-extension-safe-auto-refresh
 **Single purpose description**
 
 ```
-This extension reloads browser tabs on a timer set by the user. Every part of its interface and code serves that one function: choosing an interval, starting, pausing or cancelling a reload timer for a specific tab, and showing which tabs currently have a timer running.
+This extension reloads browser tabs on a timer set by the user. Every part of its interface and code serves that one function: choosing an interval and an optional name, starting, pausing or cancelling a reload timer for a specific tab, and showing which tabs currently have a timer running.
 ```
 
 **Permission justifications**
@@ -131,19 +143,11 @@ One additional 30-second "keepalive" alarm wakes the worker so that intervals sh
 ```
 Two uses, both local to the user's device, neither transmitted anywhere.
 
-chrome.storage.session holds the list of active reload jobs: tab ID, interval, running or paused, timestamps, and the tab title and favicon URL used as the label for that row in the popup. This lets the extension rebuild its state after Chrome shuts down its service worker; without it, reopening the popup could not report what is actually running. Chrome clears session storage when the browser closes.
+chrome.storage.session holds the list of active reload jobs: tab ID, interval, running or paused, timestamps, and the optional name the user typed for that job. This lets the extension rebuild its state after Chrome shuts down its service worker; without it, reopening the popup could not report what is actually running. Chrome clears session storage when the browser closes.
 
 chrome.storage.local holds a single value: the user's preferred default interval, so it does not have to be re-entered.
 
-No browsing history, page content, or URLs are stored.
-```
-
-`activeTab`
-
-```
-Used only to read the title and favicon URL of the tab the user invoked the extension on, at the moment they click Start. These label that job in the popup's list of running tabs. Without them the list can only show an opaque numeric tab ID such as "Tab #4711".
-
-The extension requests no host permissions and does not request the "tabs" permission, so it has no other way to identify a tab to the user, and no ability to read or modify page content. activeTab applies to one tab at a time, only on explicit user action.
+The extension requests no host permissions, no activeTab and no tabs permission, so it has no access to page content, URLs or tab titles, and none are stored.
 ```
 
 **Remote code:** No, the extension does not use remote code. All JavaScript is

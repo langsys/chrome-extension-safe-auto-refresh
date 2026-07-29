@@ -1,8 +1,8 @@
 // Builds every Chrome Web Store image asset.
 //
 // The popup shots are captured from the REAL extension running in a real
-// browser (chrome.action.openPopup + CDP screenshot), not from a mockup, so a
-// UI change that breaks the layout also breaks the store assets.
+// browser, not from a mockup, so a UI change that breaks the layout also
+// breaks the store assets.
 //
 //   node scripts/store-assets.mjs
 //
@@ -25,35 +25,11 @@ const RAW = join(OUT, 'raw');
 const BRAND = { deep: '#0f5f2c', mid: '#1a7f37', light: '#2ea043' };
 const FONT = 'Helvetica Neue, Helvetica, Arial, sans-serif';
 
-/** Tiny inline favicon so the popup never makes a network request here. */
-const favicon = (color, letter) =>
-  'data:image/svg+xml;base64,' +
-  Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">` +
-      `<rect width="16" height="16" rx="4" fill="${color}"/>` +
-      `<text x="8" y="12" font-family="Helvetica,Arial" font-size="10" font-weight="700" ` +
-      `fill="#fff" text-anchor="middle">${letter}</text></svg>`,
-  ).toString('base64');
-
+// Names are typed by the user in the real product, so they are typed here too.
 const TABS = [
-  {
-    path: '/grafana',
-    title: 'Production Overview — Grafana',
-    icon: favicon('#f46800', 'G'),
-    interval: 30,
-  },
-  {
-    path: '/ci',
-    title: 'Pipeline #4821 · running — CI',
-    icon: favicon('#2088ff', 'C'),
-    interval: 60,
-  },
-  {
-    path: '/status',
-    title: 'Service status board',
-    icon: favicon('#8250df', 'S'),
-    interval: 15,
-  },
+  { path: '/grafana', label: 'prod dashboard', interval: 30 },
+  { path: '/ci', label: 'build #4821', interval: 60 },
+  { path: '/status', label: 'status board', interval: 15 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -101,8 +77,7 @@ async function capturePopupShots() {
         type: 'START',
         tabId: ids[i],
         interval: tab.interval,
-        title: tab.title,
-        favIconUrl: tab.icon,
+        label: tab.label,
       });
     }
 
@@ -143,10 +118,13 @@ async function openPopupTab(chrome, browser, sw) {
 /** Wait until popup.js has finished its first render. */
 async function settle(session) {
   await waitFor(async () => (await evaluate(session, 'return document.readyState')) === 'complete');
+  // Exactly one of the two views is revealed once state has been fetched.
   await waitFor(
     async () =>
-      (await evaluate(session, 'return document.getElementById("active-title").textContent')) !==
-      'Loading…',
+      evaluate(
+        session,
+        'return !document.getElementById("idle-view").hidden || !document.getElementById("active-view").hidden',
+      ),
     8000,
   );
   await sleep(600); // countdown paints on its first tick
@@ -246,8 +224,8 @@ async function composeSlides() {
       file: 'idle.png',
       out: 'screenshot-2-idle.png',
       eyebrow: 'ONE CLICK TO START',
-      headline: 'Any interval, on any tab',
-      sub: 'Presets for the common cases, or type your own. 2 seconds to 24 hours.',
+      headline: 'Name it, time it, start it',
+      sub: 'Give the job a name you will recognise later. 2 seconds to 24 hours.',
     },
     {
       file: 'paused.png',
@@ -290,17 +268,15 @@ async function composePrivacySlide() {
   const rows = [
     ['alarms', 'Reliable scheduling at 30s and above'],
     ['storage', 'Job state in session, one saved preference'],
-    ['activeTab', 'The current tab title, to label the job'],
   ];
-  // Deliberately NOT "no network calls": the popup renders favicons from the
-  // tab's own favicon URL, so that claim would be an overstatement. README and
-  // PRIVACY.md say the same thing; the marketing must not say more.
+  // Every line here is now literally true: with activeTab gone the extension
+  // holds no site access of any kind, and there are no favicons to fetch.
   const absent = [
     'No host permissions',
     'No content scripts',
-    'No tabs permission',
+    'No activeTab',
+    'No network requests',
     'No data collection',
-    'No telemetry',
     'No remote code',
   ];
 
@@ -339,9 +315,9 @@ async function composePrivacySlide() {
   <text x="640" y="128" text-anchor="middle" font-family="${FONT}" font-size="17"
         font-weight="700" letter-spacing="2.4" fill="${BRAND.mid}">PRIVACY BY CONSTRUCTION</text>
   <text x="640" y="186" text-anchor="middle" font-family="${FONT}" font-size="42"
-        font-weight="700" fill="#132018">It cannot read your pages.</text>
+        font-weight="700" fill="#132018">No access to any website. At all.</text>
   <text x="640" y="226" text-anchor="middle" font-family="${FONT}" font-size="20"
-        fill="#4a5b50">Three permissions, none of which show an install warning.</text>
+        fill="#4a5b50">Two permissions, neither of which touches a single web page.</text>
   <text x="150" y="272" font-family="${FONT}" font-size="13" font-weight="700"
         letter-spacing="1.6" fill="#6b7d72">WHAT IT ASKS FOR</text>
   <text x="700" y="272" font-family="${FONT}" font-size="13" font-weight="700"
@@ -377,7 +353,7 @@ async function composePromoTiles() {
   </text>
   <text x="${w / 2}" y="${h * 0.17 + iconSize + titleSize + subSize + 26}" text-anchor="middle"
         font-family="${FONT}" font-size="${subSize}" fill="#d6f0de">
-    Per-tab reloads. Zero page access.
+    Per-tab reloads. Zero site access.
   </text>
 </svg>`;
 

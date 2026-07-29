@@ -15,9 +15,10 @@ import {
   MIN_INTERVAL,
   MSG,
   normalizeInterval,
+  normalizeLabel,
 } from './shared/constants.js';
 
-/** tabId (number) -> { interval, state, startedAt, lastRunAt, title, favIconUrl } */
+/** tabId (number) -> { interval, state, startedAt, lastRunAt, label } */
 const jobs = new Map();
 
 /** tabId (number) -> setInterval handle. Worker-local; rebuilt by rehydrate(). */
@@ -176,22 +177,6 @@ async function paintBadge(tabId, job) {
 // Job mutations
 // ---------------------------------------------------------------------------
 
-function cleanLabel(value) {
-  if (typeof value !== 'string') return '';
-  return value.trim().slice(0, 200);
-}
-
-/**
- * Favicons are rendered in the popup as <img src>. Only schemes that can
- * actually load there are kept, and anything script-bearing is dropped.
- */
-function cleanIconUrl(value) {
-  if (typeof value !== 'string' || value.length > 8192) return '';
-  if (/^https?:\/\//i.test(value)) return value;
-  if (/^data:image\//i.test(value)) return value;
-  return '';
-}
-
 async function removeJob(tabId) {
   jobs.delete(tabId);
   await disarm(tabId);
@@ -200,7 +185,7 @@ async function removeJob(tabId) {
   await syncKeepalive();
 }
 
-async function start({ tabId, interval, title, favIconUrl }) {
+async function start({ tabId, interval, label }) {
   const id = Number(tabId);
   if (!Number.isInteger(id)) return fail('Bad tab id');
 
@@ -216,8 +201,8 @@ async function start({ tabId, interval, title, favIconUrl }) {
     state: 'running',
     startedAt: now,
     lastRunAt: now,
-    title: cleanLabel(title),
-    favIconUrl: cleanIconUrl(favIconUrl),
+    // Typed by the user. The extension has no permission to read tab titles.
+    label: normalizeLabel(label),
   };
   jobs.set(id, job);
   await arm(id, job);
@@ -254,20 +239,11 @@ async function cancelAll() {
   return state();
 }
 
-/**
- * Labels are captured at Start time and go stale when the tab navigates. The
- * popup re-sends them for whichever tab is active when it opens — the only tab
- * whose title we are allowed to read (activeTab).
- */
-async function refreshLabel({ tabId, title, favIconUrl }) {
-  const id = Number(tabId);
-  const job = jobs.get(id);
-  if (!job) return state();
-
-  const label = cleanLabel(title);
-  const icon = cleanIconUrl(favIconUrl);
-  if (label) job.title = label;
-  if (icon) job.favIconUrl = icon;
+/** Rename an existing job. Labels are the only text the extension ever holds. */
+async function setLabel({ tabId, label }) {
+  const job = jobs.get(Number(tabId));
+  if (!job) return fail('No job on that tab');
+  job.label = normalizeLabel(label);
   await persist();
   return state();
 }
@@ -313,8 +289,8 @@ async function handle(message) {
       return state();
     case MSG.CANCEL_ALL:
       return cancelAll();
-    case MSG.REFRESH_LABEL:
-      return refreshLabel(message);
+    case MSG.SET_LABEL:
+      return setLabel(message);
     case MSG.SET_DEFAULT_INTERVAL:
       return setDefaultInterval(message.seconds);
     default:

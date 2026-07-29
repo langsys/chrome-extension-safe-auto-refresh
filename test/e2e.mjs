@@ -120,8 +120,7 @@ async function main() {
     type: 'START',
     tabId: tabs.a,
     interval: 3,
-    title: 'Fixture A',
-    favIconUrl: '',
+    label: 'Fixture A',
   });
   check('START accepted', started?.ok === true, started?.error);
   check('job is reported as running', started.jobs?.[tabs.a]?.state === 'running');
@@ -156,7 +155,7 @@ async function main() {
   // ======================================================================
   section('Independent multi-tab jobs');
 
-  await msg({ type: 'START', tabId: tabs.b, interval: 4, title: 'Fixture B', favIconUrl: '' });
+  await msg({ type: 'START', tabId: tabs.b, interval: 4, label: 'Fixture B' });
   const twoJobs = await msg({ type: 'GET_STATE' });
   check('both tabs have jobs', Object.keys(twoJobs.jobs).length === 2);
   check('starting B did not disturb A', twoJobs.jobs[tabs.a]?.interval === 3);
@@ -212,7 +211,7 @@ async function main() {
   // ======================================================================
   section('Slow job (alarms path, 30s)');
 
-  await msg({ type: 'START', tabId: tabs.c, interval: 30, title: 'Fixture C', favIconUrl: '' });
+  await msg({ type: 'START', tabId: tabs.c, interval: 30, label: 'Fixture C' });
   const alarmList = await alarms();
   const cAlarm = alarmList.find((a) => a.name === `refresh:${tabs.c}`);
   check('an alarm was created for the slow job', Boolean(cAlarm));

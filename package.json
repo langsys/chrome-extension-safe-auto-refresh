@@ -1,6 +1,6 @@
 {
   "name": "chrome-extension-safe-auto-refresh",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Chrome extension that reloads tabs on a timer, with no host permissions and no content scripts",
   "license": "MIT",

@@ -1,11 +1,14 @@
 # Safe Auto Refresh & Page Reloader
 
-A Chrome extension that reloads tabs on a timer — without asking for access to
-a single web page.
+A Chrome extension that reloads tabs on a timer, with **no access to any
+website whatsoever**.
 
-No host permissions. No content scripts. No network calls. No telemetry. The
-popup always tells you the truth about what is running, and every tab gets its
-own independent job.
+Not "minimal access". Not "only when you click". None. It holds no host
+permissions, registers no content scripts, and does not request `activeTab`, so
+there is no circumstance under which it can see a page you are looking at.
+
+The popup always tells you the truth about what is running, and every tab gets
+its own independent job.
 
 <p align="center">
   <img src="assets/store/raw/running.png" width="320"
@@ -57,15 +60,13 @@ Not yet published. `npm run package` builds the reviewable zip.
 
 ## Permissions, and why each one is here
 
-Three permissions, all of which Chrome installs without showing a warning
-prompt. There are deliberately no host permissions, so the extension cannot
-read or modify any page you visit.
+Two permissions. Neither shows an install warning, and neither grants any
+access to a web page.
 
 | Permission | What it is used for |
 | --- | --- |
 | `alarms` | Scheduling reloads at intervals of 30s or more. Alarms are managed by Chrome, so they survive the service worker being shut down. |
 | `storage` | `storage.session` holds live job state so it can be rebuilt after the worker restarts. `storage.local` holds exactly one preference: your default interval. |
-| `activeTab` | Reading the title and favicon of the tab you press Start on, so the popup can label the job with something better than `Tab #4711`. Granted only for the tab you invoked the extension on, only at that moment. |
 
 What is **not** in the manifest, and why it matters:
 
@@ -76,6 +77,12 @@ What is **not** in the manifest, and why it matters:
   extension. It sees opaque numeric tab IDs and nothing else.
 - **No `externally_connectable`** — no web page or other extension can send it
   messages.
+- **No `activeTab`** — this one is worth calling out because most auto-refresh
+  extensions do use it. `activeTab` grants temporary access to the tab you
+  clicked, and Chrome then lists the extension under "Full access — can see and
+  change information on this site", next to your password manager. We dropped it
+  in 1.0.1 rather than earn that line. The cost is that the extension cannot
+  read tab titles, so you name jobs yourself.
 
 ## Privacy
 
@@ -84,24 +91,22 @@ talks to no server. See [PRIVACY.md](PRIVACY.md) for the full statement.
 
 Two things worth stating plainly rather than burying:
 
-**Tab titles.** When you press Start, the title and favicon URL of that tab are
-captured for the popup's job list. They live in `chrome.storage.session`, which
-Chrome clears when the browser closes. They are never written to disk-durable
-storage and never leave your machine.
+**Job names are yours, not the page's.** The extension cannot read tab titles,
+so when you start a job you can optionally type a name for it. That string lives
+in `chrome.storage.session`, which Chrome clears when the browser closes. It is
+the only text this extension ever holds, and it never leaves your machine.
 
-**Favicons are real image loads.** The popup renders each job's favicon using
-the URL the tab reports. When that is an `https://` URL, your browser fetches
-it the same way it did to draw the tab strip — practically always from cache.
-That is the only network request this extension can cause. It is not telemetry,
-and nothing about you is sent anywhere, but "zero network activity, ever" would
-be an overstatement, so we do not make it.
+**It makes no network requests at all.** Not for analytics, not for updates, not
+even for favicons — drawing a site's favicon would require access to that site,
+which it does not have. Unnamed jobs get a coloured dot derived from the tab ID
+instead.
 
 ## How it works
 
 ### State
 
 ```js
-// tabId -> { interval, state: 'running'|'paused', startedAt, lastRunAt, title, favIconUrl }
+// tabId -> { interval, state: 'running'|'paused', startedAt, lastRunAt, label }
 ```
 
 Held in a `Map` in the service worker and mirrored to `chrome.storage.session`
@@ -133,7 +138,7 @@ The popup holds no scheduling logic. It sends a message, gets back the complete
 job list, and re-renders:
 
 `GET_STATE` · `START` · `PAUSE` · `RESUME` · `CANCEL` · `CANCEL_ALL` ·
-`REFRESH_LABEL` · `SET_DEFAULT_INTERVAL`
+`SET_LABEL` · `SET_DEFAULT_INTERVAL`
 
 Every message is checked to have come from this extension's own origin.
 
@@ -153,9 +158,9 @@ These are real, and we would rather write them down than let you discover them.
   cannot fire more often than every 30 seconds.
 - **Minimum interval is 2 seconds.** Anything faster is closer to a denial of
   service against the site than a refresh.
-- **Job titles go stale.** A label is captured when you press Start. It is
-  refreshed whenever you open the popup on that tab, since that is the one tab
-  whose title `activeTab` lets us read.
+- **Job names are typed by hand.** The extension cannot read tab titles, so an
+  unnamed job shows as `Tab #4711`. Clicking the row still jumps to that tab.
+  This is the price of asking for no site access, and it is deliberate.
 
 ## Development
 
